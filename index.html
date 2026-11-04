@@ -27,6 +27,16 @@ main{max-width:1000px;margin:auto;padding:16px}
 #ld{position:fixed;inset:0;z-index:50;background:#fff;color:#0c4a6e;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .4s}
 #ld.out{opacity:0;pointer-events:none}#ld img{height:90px;border-radius:12px}
 .bar2{width:200px;height:6px;background:#e0f2fe;border-radius:6px;overflow:hidden}#lb{height:100%;width:0;background:#0284c7}
+/* Ringkasan keranjang tetap di bawah layar */
+#bottomCartBar{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:8;display:none;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px;background:#171717;color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:16px;box-shadow:0 8px 28px rgba(0,0,0,.24)}
+#bottomCartBar.on{display:flex}
+#bottomCartBar .bcb-info{min-width:0;display:flex;flex-direction:column;gap:3px}
+#bottomCartBar .bcb-count{font-size:11px;color:#c8c8c8;letter-spacing:.04em}
+#bottomCartBar .bcb-total{font-size:17px;font-weight:800;white-space:nowrap}
+#bottomCartBar button{flex:none;border:0;border-radius:11px;background:#fff;color:#171717;padding:11px 15px;font-size:13px;font-weight:800;cursor:pointer}
+body.has-cartbar .wa{bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+body.has-cartbar{padding-bottom:88px}
+@media(min-width:760px){#bottomCartBar{left:auto;right:24px;bottom:24px;width:360px}body.has-cartbar .wa{bottom:calc(24px + env(safe-area-inset-bottom,0px));right:400px}}
 .wa{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:54px;height:54px;border-radius:50%;background:#25d366;color:#fff;display:grid;place-items:center;font-size:26px;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:4}
 .wa svg{color:#fff;fill:#fff}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:16px}
@@ -350,6 +360,7 @@ body.internet-page .head-nav a#internetNavLink{font-weight:800;color:#172554}
 </main>
 <footer><div class="footer-inner"><div><div class="footer-brand">BANGNET <span>DIGITAL</span></div><p>Teman praktis untuk kebutuhan digitalmu.</p></div><div class="footer-links"><a href="#beranda">Beranda</a><a href="#kategori">Kategori</a><a href="#produk">Produk</a><a href="https://wa.me/6287892127930" target="_blank" rel="noopener">Hubungi admin</a></div></div><div class="footer-bottom">© Bangnet 2026 · Harga dan ketersediaan sewaktu-waktu dapat berubah, jika ada yang tidak jelas, bisa hub.cs bangnet dengan klik tombol Hijau.</div></footer>
 <a class="wa" href="https://wa.me/6287892127930" target="_blank" rel="noopener" aria-label="Chat WhatsApp"><svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M16 .8A15.1 15.1 0 0 0 3.1 23.8L1 31l7.4-1.9A15.1 15.1 0 1 0 16 .8Zm0 27.4a12.2 12.2 0 0 1-6.2-1.7l-.4-.2-4.4 1.1 1.2-4.3-.3-.4A12.3 12.3 0 1 1 16 28.2Zm6.8-9.2c-.4-.2-2.1-1-2.5-1.1-.3-.1-.6-.2-.8.2-.3.4-.9 1.1-1.1 1.3-.2.3-.4.3-.8.1-.4-.2-1.5-.6-2.9-1.8-1.1-1-1.8-2.1-2-2.5-.2-.4 0-.6.2-.8l.6-.7c.2-.2.3-.4.4-.6.1-.3 0-.5 0-.7s-.8-2-1.1-2.7c-.3-.7-.6-.6-.8-.6h-.7c-.3 0-.7.1-1 .5-.4.4-1.3 1.3-1.3 3.1s1.3 3.6 1.5 3.8c.2.3 2.6 4 6.3 5.6.9.4 1.6.6 2.1.8.9.3 1.7.3 2.3.2.7-.1 2.1-.9 2.4-1.8.3-.9.3-1.6.2-1.8-.1-.2-.3-.3-.7-.5Z"/></svg></a>
+<div id="bottomCartBar" aria-live="polite"><div class="bcb-info"><span class="bcb-count" id="bottomCartCount">0 produk dipilih</span><strong class="bcb-total" id="bottomCartTotal">Rp0</strong></div><button type="button" id="bottomCartOpen">Lihat keranjang</button></div>
 <div id="ov"></div>
 <aside id="panel" aria-label="Keranjang">
 <div class="ph"><h2>Keranjang</h2><button class="x" id="close" aria-label="Tutup">×</button></div>
@@ -419,10 +430,14 @@ Object.keys(cart).forEach(function(i){var x=byId(i),q=cart[i];n+=q;t+=q*x.p;
 h+='<div class="it"><div><b>'+x.n.replace(/&/g,"&amp;")+'</b><small>'+rp(x.p)+' / item</small><div class="q"><button onclick="ch(\''+i+'\',-1)">−</button><span>'+q+'</span><button onclick="ch(\''+i+'\',1)">+</button></div></div><b>'+rp(q*x.p)+'</b></div>'});
 document.getElementById("items").innerHTML=h||'<div class="emp">Keranjang masih kosong</div>';
 document.getElementById("cnt").textContent=n;
-document.getElementById("tot").textContent=rp(t);document.getElementById("ptot").textContent=rp(t);document.getElementById("go").classList.toggle("off",!n);
+document.getElementById("tot").textContent=rp(t);document.getElementById("ptot").textContent=rp(t);
+var bottomBar=document.getElementById("bottomCartBar");
+if(bottomBar){bottomBar.classList.toggle("on",n>0);document.body.classList.toggle("has-cartbar",n>0);document.getElementById("bottomCartCount").textContent=n+" produk dipilih";document.getElementById("bottomCartTotal").textContent=rp(t);}
+document.getElementById("go").classList.toggle("off",!n);
 var a=document.getElementById("co");a.classList.toggle("off",!n);a.href=n?"https://wa.me/"+WA+"?text="+encodeURIComponent(msg()):"#";a.onclick=function(){if(n){trackWhatsAppAction();if(typeof window.recordCheckoutOrder==="function"){var orderItems=[];var orderTotal=0;Object.keys(cart).forEach(function(id){var item=byId(id),qty=Number(cart[id]||0);if(item&&qty>0){orderItems.push({product_name:item.n,quantity:qty,unit_price:Number(item.p),subtotal:qty*Number(item.p)});orderTotal+=qty*Number(item.p);}});window.recordCheckoutOrder({items:orderItems,total_amount:orderTotal,whatsapp_message:msg()});}}}}
 function tog(o){document.getElementById("panel").classList.toggle("on",o);document.getElementById("ov").classList.toggle("on",o)}
 document.getElementById("open").onclick=function(){tog(true)};
+document.getElementById("bottomCartOpen").onclick=function(){tog(true)};
 document.getElementById("close").onclick=function(){tog(false)};
 document.getElementById("ov").onclick=function(){tog(false)};
 document.getElementById("go").onclick=function(){document.getElementById("pay").classList.add("on")};
