@@ -536,7 +536,7 @@ draw();
   const productCards=Array.from(document.querySelectorAll('.card'));
   const STORE_KEY='bangnet_metrics_v1';
   const SUPABASE_URL='https://wectusglyacjqtapyvpr.supabase.co';
-  const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlY3R1c2dseWFjanF0YXB5dnByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3OTU2OTcsImV4cCI6MjEwODM3MTY5N30.HBT4U-7BxQ0ImhbLKH3dH19lLyySmV4vWYprz0HyBFw';
+  const SUPABASE_ANON_KEY='sb_publishable_0uDuEdDgIlOFCW23e_-o9g_RadhCYus';
   function readMetrics(){try{return JSON.parse(localStorage.getItem(STORE_KEY))||{visits:0,whatsapp:0,products:{}}}catch(e){return {visits:0,whatsapp:0,products:{}}}}
   let metrics=readMetrics();
   function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(metrics))}catch(e){};refresh()}
@@ -567,16 +567,18 @@ draw();
     try{
       const response=await fetch(SUPABASE_URL+'/rest/v1/rpc/register_site_visit',{
         method:'POST',
-        headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY},
+        headers:{'Content-Type':'application/json','Accept':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY},
         body:JSON.stringify({p_visitor_id:getVisitorId()}),
-        cache:'no-store'
+        cache:'no-store',
+        credentials:'omit'
       });
-      if(!response.ok)throw new Error('Supabase HTTP '+response.status);
-      const total=await response.json();
+      const responseText=await response.text();
+      if(!response.ok)throw new Error('HTTP '+response.status+' — '+responseText.slice(0,180));
+      const total=JSON.parse(responseText);
       if(output)output.textContent=Number(total).toLocaleString('id-ID');
     }catch(error){
       console.error('Gagal memuat total pengunjung Supabase:',error);
-      if(output)output.textContent='—';
+      if(output)output.textContent='Gagal memuat';
     }
   }
   refresh();
