@@ -491,7 +491,7 @@ categoryItems.forEach(function(item){
   var b=document.createElement("button");b.type="button";b.className="chip";b.textContent=item.name;
   b.onclick=function(){
     if(item.name==="Paket Internet"){
-      if(!internetPage){location.href="?page=paket-internet#kategori";return;}
+      if(!internetPage){setInternetPage(true);}
       cc="Paket Internet";
     }else{
       cc=item.name;
