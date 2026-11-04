@@ -267,6 +267,72 @@ body.internet-page .catalog-toolbar{margin-top:26px}
 body.internet-page .head-nav a#internetNavLink{font-weight:800;color:#172554}
 @media(max-width:650px){.internet-page-heading{margin:18px 16px;padding:20px}}
 
+
+/* Penyederhanaan menu kategori dan provider */
+.chips#chips{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+  padding:12px 0 4px;
+  align-items:stretch;
+}
+.chips#chips .chip{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:46px;
+  width:100%;
+  white-space:normal;
+  text-align:center;
+  line-height:1.25;
+  padding:10px 12px;
+  border-radius:13px;
+  background:#fff;
+  color:#252938;
+  border:1px solid #dfe2e9;
+  font-size:14px;
+  font-weight:600;
+  box-shadow:0 2px 7px rgba(20,25,40,.045);
+}
+.chips#chips .chip.on{
+  background:#172554;
+  color:#fff;
+  border-color:#172554;
+}
+.provider-chips{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin:10px 0 4px;
+  padding:0;
+}
+.provider-chips .provider-chip{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  min-height:42px;
+  width:100%;
+  white-space:normal;
+  text-align:center;
+  border-radius:12px;
+  padding:9px 6px;
+  background:#fff !important;
+  color:#252938 !important;
+  border:1px solid #dfe2e9 !important;
+  font-size:13px;
+  font-weight:600;
+}
+.provider-chips .provider-chip.on{
+  background:#172554 !important;
+  color:#fff !important;
+  border-color:#172554 !important;
+}
+@media(min-width:700px){
+  .chips#chips{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .provider-chips{grid-template-columns:repeat(6,minmax(0,1fr))}
+}
+
 </style>
 </head>
 <body>
