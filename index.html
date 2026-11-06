@@ -182,6 +182,7 @@ footer p{font-size:11px;margin:7px 0 0}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
 
+ .gestun-input{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#111;font-size:13px}.gestun-calc{display:grid;gap:7px;padding:10px;background:#fff;border:1px solid #e5e7eb;border-radius:7px;font-size:11px;color:#777}.gestun-calc div{display:flex;justify-content:space-between;gap:8px}.gestun-calc b{color:#222}.gestun-calc .gestun-net{padding-top:7px;border-top:1px solid #e5e7eb;color:#0f766e;font-weight:750}.gestun-calc .gestun-net b{color:#0f766e;font-size:14px}
 /* Rounded corners for every product photo frame */
 .card .sl{border-radius:16px !important;overflow:hidden;}
 .card .sl img{border-radius:inherit;}
@@ -423,6 +424,23 @@ grid.appendChild(e);cards.push({el:e,c:g[4]||CAT[g[0]]||"Lainnya",t:(g[0]+" "+g[
 var categoryOrder=["Streaming Video & Hiburan","Editor Foto, Video, & Desain","AI & VPN","Produktivitas & Dokumen","Paket Internet","XL","Axis","Telkomsel","Indosat","Tri","Smartfren","Streaming Musik & Audio"];
 cards.sort(function(a,b){var ai=categoryOrder.indexOf(a.c),bi=categoryOrder.indexOf(b.c);if(ai<0)ai=categoryOrder.length;if(bi<0)bi=categoryOrder.length;return ai-bi});
 cards.forEach(function(c){grid.appendChild(c.el)});
+var gestunItem={id:"gestun-custom",g:-1,n:"Jasa Gestun",p:0,st:1,so:0,gestun:true,fee:0,received:0};
+V.push(gestunItem);
+var gestunCard=document.createElement("div");gestunCard.className="card";
+var gestunPhoto=document.createElement("div");gestunPhoto.className="sl";gestunPhoto.style.background="#e8f3ef";gestunPhoto.textContent="💸";gestunPhoto.style.fontSize="48px";gestunCard.appendChild(gestunPhoto);
+var gestunTitle=document.createElement("h3");gestunTitle.textContent="Jasa Gestun";gestunCard.appendChild(gestunTitle);
+var gestunDesc=document.createElement("p");gestunDesc.textContent="Masukkan nominal uang yang akan digestun. Biaya layanan 10% dipotong otomatis.";gestunCard.appendChild(gestunDesc);
+var gestunInput=document.createElement("input");gestunInput.type="number";gestunInput.min="1";gestunInput.step="1000";gestunInput.inputMode="numeric";gestunInput.placeholder="Masukkan nominal (Rp)";gestunInput.className="gestun-input";gestunCard.appendChild(gestunInput);
+var gestunCalc=document.createElement("div");gestunCalc.className="gestun-calc";
+var gestunFeeRow=document.createElement("div");var gestunFeeLabel=document.createElement("span");gestunFeeLabel.textContent="Biaya layanan (10%)";var gestunFee=document.createElement("b");gestunFee.textContent="Rp0";gestunFeeRow.append(gestunFeeLabel,gestunFee);
+var gestunNetRow=document.createElement("div");gestunNetRow.className="gestun-net";var gestunNetLabel=document.createElement("span");gestunNetLabel.textContent="Uang diterima";var gestunNet=document.createElement("b");gestunNet.textContent="Rp0";gestunNetRow.append(gestunNetLabel,gestunNet);gestunCalc.append(gestunFeeRow,gestunNetRow);gestunCard.appendChild(gestunCalc);
+var gestunPrice=document.createElement("div");gestunPrice.className="price";gestunPrice.textContent="Masukkan nominal";gestunCard.appendChild(gestunPrice);
+var gestunMeta=document.createElement("div");gestunMeta.className="meta";gestunMeta.textContent="Potongan biaya 10%";gestunCard.appendChild(gestunMeta);
+var gestunAdd=document.createElement("button");gestunAdd.className="add";gestunAdd.textContent="+ Ajukan Gestun";gestunCard.appendChild(gestunAdd);
+function updateGestun(){var amount=Math.max(0,Math.floor(Number(gestunInput.value)||0));gestunItem.p=amount;gestunItem.fee=Math.round(amount*.10);gestunItem.received=amount-gestunItem.fee;gestunPrice.textContent=amount?rp(amount):"Masukkan nominal";gestunFee.textContent=rp(gestunItem.fee);gestunNet.textContent=rp(gestunItem.received);gestunMeta.textContent=amount?"Nominal transaksi: "+rp(amount):"Potongan biaya 10%";}
+gestunInput.addEventListener("input",updateGestun);
+gestunAdd.onclick=function(){updateGestun();if(!gestunItem.p){gestunInput.focus();return;}cart[gestunItem.id]=1;draw();gestunAdd.textContent="✓ Ditambahkan";setTimeout(function(){gestunAdd.textContent="+ Ajukan Gestun";},900);};
+grid.appendChild(gestunCard);cards.push({el:gestunCard,c:"Gestun",t:"jasa gestun nominal uang biaya layanan"});
 function ch(id,d){var x=byId(id);cart[id]=Math.min((cart[id]||0)+d,x.st);if(cart[id]<=0)delete cart[id];draw()}
 function draw(){
 var n=0,t=0,h="";
@@ -499,7 +517,8 @@ var categoryItems=[
  {name:"AI & VPN",emoji:"✦",tone:3},
  {name:"Produktivitas & Dokumen",emoji:"▤",tone:4},
  {name:"Paket Internet",emoji:"📱",tone:5},
- {name:"Streaming Musik & Audio",emoji:"♫",tone:6}
+ {name:"Streaming Musik & Audio",emoji:"♫",tone:6},
+ {name:"Gestun",emoji:"💸",tone:7}
 ];
 function renderProviderChips(){providerEl.innerHTML="";providerEl.style.display=cc==="Paket Internet"?"flex":"none";if(cc!=="Paket Internet")return;var all=document.createElement("button");all.type="button";all.className="chip provider-chip"+(activeProvider==="Semua"?" on":"");all.textContent="Semua Provider";all.onclick=function(){activeProvider="Semua";renderProviderChips();flt()};providerEl.appendChild(all);providerItems.forEach(function(provider){var b=document.createElement("button");b.type="button";b.className="chip provider-chip"+(activeProvider===provider?" on":"");b.textContent=provider;b.onclick=function(){activeProvider=provider;renderProviderChips();flt()};providerEl.appendChild(b)});}
 categoryItems.forEach(function(item){
