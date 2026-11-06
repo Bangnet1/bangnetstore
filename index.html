@@ -445,7 +445,7 @@ function ch(id,d){var x=byId(id);cart[id]=Math.min((cart[id]||0)+d,x.st);if(cart
 function draw(){
 var n=0,t=0,h="";
 Object.keys(cart).forEach(function(i){var x=byId(i),q=cart[i];n+=q;t+=q*x.p;
-h+='<div class="it"><div><b>'+x.n.replace(/&/g,"&amp;")+'</b><small>'+rp(x.p)+' / item</small><div class="q"><button onclick="ch(\''+i+'\',-1)">−</button><span>'+q+'</span><button onclick="ch(\''+i+'\',1)">+</button></div></div><b>'+rp(q*x.p)+'</b></div>'});
+h+='<div class="it"><div><b>'+x.n.replace(/&/g,"&amp;")+'</b><small>'+(x.gestun?"Nominal: "+rp(x.p)+" | Biaya 10%: "+rp(x.fee)+" | Diterima: "+rp(x.received):rp(x.p)+" / item")+'</small>'+(x.gestun?"":'<div class="q"><button onclick="ch(\''+i+'\',-1)">−</button><span>'+q+'</span><button onclick="ch(\''+i+'\',1)">+</button></div>')+'</div><b>'+rp(q*x.p)+'</b></div>'});
 document.getElementById("items").innerHTML=h||'<div class="emp">Keranjang masih kosong</div>';
 document.getElementById("cnt").textContent=n;
 document.getElementById("tot").textContent=rp(t);document.getElementById("ptot").textContent=rp(t);
@@ -463,7 +463,7 @@ document.getElementById("pclose").onclick=function(){document.getElementById("pa
 function msg(){
 var m="Halo, saya ingin memesan produk berikut:\n\n",t=0,k=1;
 Object.keys(cart).forEach(function(i){var x=byId(i),q=cart[i];t+=q*x.p;
-m+=k+". "+x.n+" x"+q+" = "+rp(q*x.p)+"\n";k++});
+m+=k+". "+x.n+(x.gestun?"\n   Nominal: "+rp(x.p)+"\n   Biaya layanan 10%: "+rp(x.fee)+"\n   Uang diterima: "+rp(x.received):" x"+q+" = "+rp(q*x.p))+"\n";k++});
 m+="\nTotal: "+rp(t)+"\n\nPembayaran via QRIS Bangnet. Bukti pembayaran saya lampirkan di chat ini. Terima kasih!";
 return m}
 document.getElementById("cp").onclick=function(){
