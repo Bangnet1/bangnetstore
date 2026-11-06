@@ -474,33 +474,27 @@ function fb(){var t=document.createElement("textarea");t.value=m;document.body.a
 try{navigator.clipboard.writeText(m).then(ok,fb)}catch(e){fb()}};
 var params=new URLSearchParams(location.search);
 var currentPage=params.get("page")||"";
-var internetPage=currentPage==="paket-internet";
-var gestunPage=currentPage==="gestun";
-var internetHeading=document.getElementById("internetPageHeading");
-var gestunHeading=document.getElementById("gestunPageHeading");
-function setCategoryPage(page){
-  internetPage=page==="paket-internet";gestunPage=page==="gestun";
-  document.body.classList.toggle("internet-page",internetPage||gestunPage);
-  internetHeading.hidden=!internetPage;gestunHeading.hidden=!gestunPage;
-  if(internetPage||gestunPage){history.replaceState({}, "", location.pathname+"?page="+page+"#kategori");}
-  else{history.replaceState({}, "", location.pathname+location.hash);}
-}
-if(internetPage||gestunPage){document.body.classList.add("internet-page");internetHeading.hidden=!internetPage;gestunHeading.hidden=!gestunPage;}
-var cc=internetPage?"Paket Internet":(gestunPage?"Gestun":"Semua"),activeProvider="Semua";
+var categorySlugs={"Semua":"","Streaming Video & Hiburan":"streaming-video","Editor Foto, Video, & Desain":"editor-kreatif","AI & VPN":"ai-vpn","Produktivitas & Dokumen":"produktivitas","Paket Internet":"paket-internet","Streaming Musik & Audio":"musik-audio","Gestun":"gestun"};
+var categoryBySlug={};Object.keys(categorySlugs).forEach(function(name){categoryBySlug[categorySlugs[name]]=name});
+var currentCategory=categoryBySlug[currentPage]||"Semua";
+var internetPage=currentCategory==="Paket Internet";var gestunPage=currentCategory==="Gestun";
+var internetHeading=document.getElementById("internetPageHeading");var gestunHeading=document.getElementById("gestunPageHeading");
+var categoryHeading=document.createElement("section");categoryHeading.className="internet-page-heading";categoryHeading.id="categoryPageHeading";categoryHeading.hidden=true;
+categoryHeading.innerHTML='<span class="section-kicker">KATALOG KHUSUS</span><h1></h1><p></p><a class="internet-back-link" href="/">← Kembali ke Beranda</a>';
+document.getElementById("internetPageHeading").after(categoryHeading);
+var categoryDescriptions={"Streaming Video & Hiburan":"Pilih layanan streaming video dan hiburan digital.","Editor Foto, Video, & Desain":"Temukan aplikasi editing foto, video, dan desain.","AI & VPN":"Pilih layanan AI dan VPN sesuai kebutuhan.","Produktivitas & Dokumen":"Aplikasi produktivitas dan dokumen digital.","Streaming Musik & Audio":"Nikmati layanan streaming musik dan audio."};
+function setCategoryPage(page){currentCategory=categoryBySlug[page]||"Semua";cc=currentCategory;activeProvider="Semua";applyCategoryPage();history.pushState({categoryPage:page},"",page?location.pathname+"?page="+page+"#kategori":location.pathname+"#kategori");}
+function applyCategoryPage(){internetPage=currentCategory==="Paket Internet";gestunPage=currentCategory==="Gestun";document.body.classList.toggle("internet-page",currentCategory!=="Semua");internetHeading.hidden=!internetPage;gestunHeading.hidden=!gestunPage;categoryHeading.hidden=internetPage||gestunPage||currentCategory==="Semua";if(!categoryHeading.hidden){categoryHeading.querySelector("h1").textContent=currentCategory;categoryHeading.querySelector("p").textContent=categoryDescriptions[currentCategory]||"Jelajahi pilihan produk dalam kategori ini.";}if(internetPage||gestunPage||currentCategory!=="Semua")document.body.classList.add("internet-page");}
+applyCategoryPage();
+window.addEventListener("popstate",function(){var p=new URLSearchParams(location.search).get("page")||"";currentCategory=categoryBySlug[p]||"Semua";cc=currentCategory;activeProvider="Semua";applyCategoryPage();document.querySelectorAll("#chips .chip").forEach(function(x){x.classList.toggle("on",x.textContent===currentCategory)});renderProviderChips();flt();});
+var cc=currentCategory,activeProvider="Semua";
 function flt(){var k=document.getElementById("q").value.trim().toLowerCase(),n=0;cards.forEach(function(c){var catOk=(cc=="Semua"||(cc=="Paket Internet"?(activeProvider=="Semua"||c.c==activeProvider):c.c==cc));var ok=catOk&&(!k||c.t.indexOf(k)>-1);c.el.style.display=ok?"":"none";if(ok)n++});document.getElementById("none").style.display=n?"none":"block"}
 document.getElementById("q").oninput=flt;
 
 var internetNav=document.getElementById("internetNavLink");
 if(internetNav){
   internetNav.addEventListener("click",function(ev){
-    if(internetPage){
-      ev.preventDefault();
-      cc="Paket Internet";activeProvider="Semua";
-      internetHeading.hidden=false;document.body.classList.add("internet-page");
-      document.querySelectorAll("#chips .chip").forEach(function(x){x.classList.toggle("on",x.textContent==="Paket Internet")});
-      renderProviderChips();flt();
-      history.replaceState({}, "", location.pathname+"?page=paket-internet#kategori");
-    }
+    ev.preventDefault();cc="Paket Internet";activeProvider="Semua";setCategoryPage("paket-internet");document.querySelectorAll("#chips .chip").forEach(function(x){x.classList.toggle("on",x.textContent==="Paket Internet")});renderProviderChips();flt();
   });
 }
 var qh=document.getElementById("qh");
@@ -525,21 +519,13 @@ function renderProviderChips(){providerEl.innerHTML="";providerEl.style.display=
 categoryItems.forEach(function(item){
   var b=document.createElement("button");b.type="button";b.className="chip";b.textContent=item.name;
   b.onclick=function(){
-    if(item.name==="Paket Internet"){
-      setCategoryPage("paket-internet");cc="Paket Internet";
-    }else if(item.name==="Gestun"){
-      setCategoryPage("gestun");cc="Gestun";activeProvider="Semua";
-    }else{
-      cc=item.name;
-      if(internetPage||gestunPage)setCategoryPage("");
-      activeProvider="Semua";
-    }
+    var slug=categorySlugs[item.name]||"";setCategoryPage(slug);cc=item.name;activeProvider="Semua";
     document.querySelectorAll("#chips .chip").forEach(function(x){x.classList.toggle("on",x===b)});
     renderProviderChips();flt();
   };
   chEl.appendChild(b);
 });
-var initialChip=Array.from(chEl.querySelectorAll('.chip')).find(function(x){return x.textContent===(internetPage?"Paket Internet":(gestunPage?"Gestun":"Semua"))});
+var initialChip=Array.from(chEl.querySelectorAll('.chip')).find(function(x){return x.textContent===currentCategory});
 if(initialChip)initialChip.classList.add('on');
 renderProviderChips();
 flt();
