@@ -354,6 +354,7 @@ body.internet-page .head-nav a#internetNavLink{font-weight:800;color:#172554}
 <div class="feats"><div class="feat"><span class="feat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 11V5.8a1.7 1.7 0 0 1 3.4 0V10"/><path d="M11.4 9.5V4.8a1.7 1.7 0 0 1 3.4 0v5.1"/><path d="M14.8 10V6.5a1.7 1.7 0 0 1 3.4 0v7.2c0 4-2.6 6.8-6.4 6.8h-.6c-2 0-3.4-.9-4.5-2.5L3.9 13.8a1.7 1.7 0 0 1 2.8-1.9L8 13.6"/></svg></span><div><b>Praktis & mudah</b><small>Pilih paket dalam beberapa klik</small></div></div><div class="feat"><span class="feat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m20.6 13.4-7.2 7.2a2 2 0 0 1-2.8 0L3.4 13.4a2 2 0 0 1 0-2.8l7.2-7.2h6.2l3.8 3.8z"/><circle cx="15.2" cy="8.8" r="1.2"/><path d="m7.8 12.2 4 4"/></svg></span><div><b>Harga jelas</b><small>Periksa harga sebelum memesan</small></div></div><div class="feat"><span class="feat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-8.8 8.4 9.2 9.2 0 0 1-3.7-.9L3 20l1.1-4.1a8.2 8.2 0 1 1 16.9-4.4Z"/><path d="M8.5 9.2c.5 2.3 2 3.8 4.3 4.4"/><path d="M8.3 8.2 9.6 7m2.8 7.3 1.4-1.1"/></svg></span><div><b>Admin siap membantu</b><small>Hubungi kami melalui WhatsApp</small></div></div></div>
 <section class="stats-panel" aria-label="Statistik toko"><div class="stat-item"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.8 12 1.5l5 2.3 3 5.1v7.2L12 22l-8-5.9V8.9z"/><path d="m8.5 12.3 2.2 2.2 4.8-5"/></svg></span><div><div class="stat-label">PRODUK TERJUAL</div><div class="stat-number">1.699</div></div></div><div class="stat-item"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.8 20v-1.6a6.2 6.2 0 0 1 12.4 0V20M16 4.9a3.2 3.2 0 0 1 0 6.2M18.1 14.2a5.4 5.4 0 0 1 3.1 4.9V20"/></svg></span><div><div class="stat-label">TOTAL PENGUNJUNG</div><div class="stat-number" id="totalVisitorsStat" aria-live="polite">Memuat…</div></div></div></section>
 <section id="internetPageHeading" class="internet-page-heading" hidden><span class="section-kicker">KATALOG KHUSUS</span><h1>Paket Internet</h1><p>Pilih provider dan paket internet yang sesuai dengan kebutuhanmu.</p><a class="internet-back-link" href="/">← Kembali ke Beranda</a></section>
+<section id="gestunPageHeading" class="internet-page-heading gestun-page-heading" hidden><span class="section-kicker">LAYANAN KHUSUS</span><h1>Jasa Gestun</h1><p>Masukkan nominal transaksi untuk melihat biaya layanan 10% dan jumlah uang yang akan diterima.</p><a class="internet-back-link" href="/">← Kembali ke Beranda</a></section>
 <div class="catalog-toolbar" id="kategori"><div><span class="section-kicker">JELAJAHI KATALOG</span><h2>Temukan yang kamu butuhkan</h2><p>Paket internet, streaming, aplikasi, dan layanan digital sesuai daftar harga terbaru.</p></div><label class="main-search"><span aria-hidden="true">⌕</span><input class="sb" id="q" type="search" placeholder="Cari produk, rincian, paket internet..." autocomplete="off"></label></div>
 <div class="chips" id="chips" aria-label="Kategori utama"></div><div class="chips provider-chips" id="providerChips" aria-label="Provider paket internet" style="display:none"></div><div class="product-heading" id="produk"><div><span class="section-kicker">PILIHAN UNTUKMU</span><h2>Produk digital</h2></div><span class="catalog-note">Pilih paket · Tambahkan ke keranjang</span></div>
 <div class="grid" id="grid"></div>
@@ -472,20 +473,20 @@ function ok(){b.textContent="Tersalin ✓ — tempel di WhatsApp ke +"+WA}
 function fb(){var t=document.createElement("textarea");t.value=m;document.body.appendChild(t);t.select();try{document.execCommand("copy");ok()}catch(e){prompt("Salin pesan ini:",m)}document.body.removeChild(t)}
 try{navigator.clipboard.writeText(m).then(ok,fb)}catch(e){fb()}};
 var params=new URLSearchParams(location.search);
-var internetPage=params.get("page")==="paket-internet";
+var currentPage=params.get("page")||"";
+var internetPage=currentPage==="paket-internet";
+var gestunPage=currentPage==="gestun";
 var internetHeading=document.getElementById("internetPageHeading");
-function setInternetPage(active){
-  internetPage=!!active;
-  document.body.classList.toggle("internet-page",internetPage);
-  internetHeading.hidden=!internetPage;
-  if(internetPage){
-    history.replaceState({}, "", location.pathname+"?page=paket-internet#kategori");
-  }else{
-    history.replaceState({}, "", location.pathname+location.hash);
-  }
+var gestunHeading=document.getElementById("gestunPageHeading");
+function setCategoryPage(page){
+  internetPage=page==="paket-internet";gestunPage=page==="gestun";
+  document.body.classList.toggle("internet-page",internetPage||gestunPage);
+  internetHeading.hidden=!internetPage;gestunHeading.hidden=!gestunPage;
+  if(internetPage||gestunPage){history.replaceState({}, "", location.pathname+"?page="+page+"#kategori");}
+  else{history.replaceState({}, "", location.pathname+location.hash);}
 }
-if(internetPage){document.body.classList.add("internet-page");internetHeading.hidden=false;}
-var cc=internetPage?"Paket Internet":"Semua",activeProvider="Semua";
+if(internetPage||gestunPage){document.body.classList.add("internet-page");internetHeading.hidden=!internetPage;gestunHeading.hidden=!gestunPage;}
+var cc=internetPage?"Paket Internet":(gestunPage?"Gestun":"Semua"),activeProvider="Semua";
 function flt(){var k=document.getElementById("q").value.trim().toLowerCase(),n=0;cards.forEach(function(c){var catOk=(cc=="Semua"||(cc=="Paket Internet"?(activeProvider=="Semua"||c.c==activeProvider):c.c==cc));var ok=catOk&&(!k||c.t.indexOf(k)>-1);c.el.style.display=ok?"":"none";if(ok)n++});document.getElementById("none").style.display=n?"none":"block"}
 document.getElementById("q").oninput=flt;
 
@@ -525,11 +526,12 @@ categoryItems.forEach(function(item){
   var b=document.createElement("button");b.type="button";b.className="chip";b.textContent=item.name;
   b.onclick=function(){
     if(item.name==="Paket Internet"){
-      if(!internetPage){setInternetPage(true);}
-      cc="Paket Internet";
+      setCategoryPage("paket-internet");cc="Paket Internet";
+    }else if(item.name==="Gestun"){
+      setCategoryPage("gestun");cc="Gestun";activeProvider="Semua";
     }else{
       cc=item.name;
-      if(internetPage)setInternetPage(false);
+      if(internetPage||gestunPage)setCategoryPage("");
       activeProvider="Semua";
     }
     document.querySelectorAll("#chips .chip").forEach(function(x){x.classList.toggle("on",x===b)});
@@ -537,7 +539,7 @@ categoryItems.forEach(function(item){
   };
   chEl.appendChild(b);
 });
-var initialChip=Array.from(chEl.querySelectorAll('.chip')).find(function(x){return x.textContent===(internetPage?"Paket Internet":"Semua")});
+var initialChip=Array.from(chEl.querySelectorAll('.chip')).find(function(x){return x.textContent===(internetPage?"Paket Internet":(gestunPage?"Gestun":"Semua"))});
 if(initialChip)initialChip.classList.add('on');
 renderProviderChips();
 flt();
