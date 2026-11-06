@@ -420,7 +420,7 @@ function upd(){cur=vs[sel.value];qv=1;qn.textContent=1;e.querySelector(".price")
 sel.onchange=upd;upd();
 e.querySelector(".qm").onclick=function(){if(qv>1){qv--;qn.textContent=qv}};
 e.querySelector(".qp").onclick=function(){if(qv<cur.st){qv++;qn.textContent=qv}};
-e.querySelector(".add").onclick=function(){cart[cur.id]=Math.min((cart[cur.id]||0)+qv,cur.st);trackProductAction(cur.n,qv);qv=1;qn.textContent=1;draw();var b=this;b.textContent="✓ Ditambahkan";setTimeout(function(){b.textContent="+ Keranjang"},900)};
+e.querySelector(".add").onclick=function(){cart[cur.id]=Math.min((cart[cur.id]||0)+qv,cur.st);qv=1;qn.textContent=1;draw();var b=this;b.textContent="✓ Ditambahkan";setTimeout(function(){b.textContent="+ Keranjang"},900)};
 grid.appendChild(e);cards.push({el:e,c:g[4]||CAT[g[0]]||"Lainnya",t:(g[0]+" "+g[1]+" "+vs.map(function(x){return x.n}).join(" ")).toLowerCase()})});
 // Urutkan produk pada tampilan "Semua" mengikuti urutan kategori yang ditampilkan.
 var categoryOrder=["Streaming Video & Hiburan","Editor Foto, Video, & Desain","AI & VPN","Produktivitas & Dokumen","Paket Internet","XL","Axis","Telkomsel","Indosat","Tri","Smartfren","Streaming Musik & Audio"];
@@ -574,7 +574,24 @@ draw();
   }
   function hash(str){let h=0;for(let i=0;i<str.length;i++)h=(h*31+str.charCodeAt(i))|0;return Math.abs(h)}
   window.trackProductAction=function(id,qty){const key=String(id);metrics.products[key]=(Number(metrics.products[key])||0)+Math.max(1,Number(qty)||1);save()};
-  window.trackWhatsAppAction=function(){metrics.whatsapp=(Number(metrics.whatsapp)||0)+1;Object.keys(cart).forEach(id=>{const item=byId(id);if(item){const key=String(item.n);metrics.products[key]=(Number(metrics.products[key])||0)+Number(cart[id]||1)}});save()};
+  window.trackWhatsAppAction=function(){metrics.whatsapp=(Number(metrics.whatsapp)||0)+1;save();recordProductSales();};
+  async function recordProductSales(){
+    const rows=Object.keys(cart).map(id=>{const item=byId(id);return item&&item.p>0?{product_name:item.n,quantity:Number(cart[id]||1)}:null}).filter(Boolean);
+    if(!rows.length)return;
+    try{const response=await fetch(SUPABASE_URL+'/rest/v1/product_sales_events',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','Prefer':'return=minimal','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY},body:JSON.stringify(rows),keepalive:true});if(!response.ok)throw new Error('HTTP '+response.status);loadProductSales()}catch(error){console.error('Gagal mencatat penjualan:',error);}
+  }
+  async function loadProductSales(){
+    try{
+      const response=await fetch(SUPABASE_URL+'/rest/v1/product_sales_events?select=product_name,quantity',{headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY},cache:'no-store'});
+      if(!response.ok)throw new Error('HTTP '+response.status);
+      const rows=await response.json(),totals={};let total=0;
+      rows.forEach(row=>{const name=String(row.product_name||'');const qty=Number(row.quantity)||0;totals[name]=(totals[name]||0)+qty;total+=qty});
+      const stat=document.querySelector('.stats-panel .stat-number');
+      if(stat)stat.textContent=total.toLocaleString('id-ID');
+      document.querySelectorAll('.card').forEach(card=>{const name=card.querySelector('h3')?.textContent||'';const n=totals[name]||0;card.dataset.salesCount=String(n);const sold=card.querySelector('.sold'),stars=card.querySelector('.stars');if(sold)sold.textContent=n.toLocaleString('id-ID')+' terjual';if(stars)stars.textContent=n===0?'☆☆☆☆☆ 0/5':'★'.repeat(4)+'☆ '+ '4.0/5';});
+    }catch(error){console.error('Gagal memuat statistik penjualan:',error);}
+  }
+  loadProductSales();setInterval(loadProductSales,10000);
   function getVisitorId(){
     const key='bangnet_visitor_id_v1';
     try{
