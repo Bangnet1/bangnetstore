@@ -428,9 +428,10 @@ cards.sort(function(a,b){var ai=categoryOrder.indexOf(a.c),bi=categoryOrder.inde
 cards.forEach(function(c){grid.appendChild(c.el)});
 var gestunItem={id:"gestun-custom",g:-1,n:"Jasa Gestun",p:0,st:1,so:0,gestun:true,fee:0,received:0};
 V.push(gestunItem);
-var gestunCard=document.createElement("div");gestunCard.className="card";
+var gestunCard=document.createElement("div");gestunCard.className="card";gestunCard.dataset.productId=gestunItem.n;
 var gestunPhoto=document.createElement("div");gestunPhoto.className="sl";gestunPhoto.style.background="#e8f3ef";gestunPhoto.textContent="💸";gestunPhoto.style.fontSize="48px";gestunCard.appendChild(gestunPhoto);
 var gestunTitle=document.createElement("h3");gestunTitle.textContent="Jasa Gestun";gestunCard.appendChild(gestunTitle);
+var gestunSocialProof=document.createElement("div");gestunSocialProof.className="social-proof";var gestunStars=document.createElement("span");gestunStars.className="stars";gestunStars.textContent="☆☆☆☆☆ 0/5";var gestunSold=document.createElement("span");gestunSold.className="sold";gestunSold.textContent="0 terjual";gestunSocialProof.append(gestunStars,gestunSold);gestunCard.appendChild(gestunSocialProof);
 var gestunDesc=document.createElement("p");gestunDesc.textContent="Masukkan nominal uang yang akan digestun. Biaya layanan 10% dipotong otomatis.";gestunCard.appendChild(gestunDesc);
 var gestunInput=document.createElement("input");gestunInput.type="number";gestunInput.min="1";gestunInput.step="1000";gestunInput.inputMode="numeric";gestunInput.placeholder="Masukkan nominal (Rp)";gestunInput.className="gestun-input";gestunCard.appendChild(gestunInput);
 var gestunCalc=document.createElement("div");gestunCalc.className="gestun-calc";
