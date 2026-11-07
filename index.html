@@ -490,7 +490,7 @@ function applyCategoryPage(){internetPage=currentCategory==="Paket Internet";ges
 applyCategoryPage();
 window.addEventListener("popstate",function(){var p=new URLSearchParams(location.search).get("page")||"";currentCategory=categoryBySlug[p]||"Semua";cc=currentCategory;activeProvider="Semua";applyCategoryPage();document.querySelectorAll("#chips .chip").forEach(function(x){x.classList.toggle("on",x.textContent===currentCategory)});renderProviderChips();flt();});
 var cc=currentCategory,activeProvider="Semua";
-function flt(){var k=document.getElementById("q").value.trim().toLowerCase(),n=0;cards.forEach(function(c){var catOk=(cc=="Semua"||(cc=="Paket Internet"?(activeProvider=="Semua"||c.c==activeProvider):c.c==cc));var ok=catOk&&(!k||c.t.indexOf(k)>-1);c.el.style.display=ok?"":"none";if(ok)n++});document.getElementById("none").style.display=n?"none":"block"}
+function flt(){var k=document.getElementById("q").value.trim().toLowerCase(),n=0;cards.forEach(function(c){var catOk=(cc=="Semua"||(cc=="Paket Internet"?(providerItems.indexOf(c.c)>-1&&(activeProvider=="Semua"||c.c==activeProvider)):c.c==cc));var ok=catOk&&(!k||c.t.indexOf(k)>-1);c.el.style.display=ok?"":"none";if(ok)n++});document.getElementById("none").style.display=n?"none":"block"}
 document.getElementById("q").oninput=flt;
 
 var internetNav=document.getElementById("internetNavLink");
