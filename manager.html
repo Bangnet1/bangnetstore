@@ -2,6 +2,7 @@
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bangnet Manager · Admin</title>
 <style>
 :root{font-family:Inter,system-ui,Arial;color:#172033;background:#f5f7fb}*{box-sizing:border-box}body{margin:0}header{background:#101d35;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px}main{max-width:1200px;margin:22px auto;padding:0 16px}.panel{background:#fff;border:1px solid #e4e9f1;border-radius:14px;padding:17px;margin-bottom:15px;box-shadow:0 4px 16px #15213a0a}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}.metric{font-size:25px;font-weight:750;margin-top:8px}nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}button{border:0;border-radius:9px;padding:10px 13px;background:#126b68;color:white;font-weight:650;cursor:pointer}button.secondary{background:#e9eef5;color:#24324a}button.danger{background:#a82b37}button:disabled{opacity:.5;cursor:not-allowed}input,select,textarea{width:100%;padding:10px;border:1px solid #ccd5e2;border-radius:8px;margin:5px 0 12px;font:inherit}label{font-size:13px;font-weight:650}table{width:100%;border-collapse:collapse;min-width:760px}th,td{text-align:left;padding:10px;border-bottom:1px solid #edf0f5;font-size:13px}th{background:#f7f9fc}.scroll{overflow:auto}.muted{color:#65738a;font-size:13px}.hidden{display:none!important}.tabs button.active{background:#101d35}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.row>*{flex:1;min-width:180px}.status{padding:5px 8px;border-radius:20px;font-size:12px;background:#e1efff;color:#174d8c}.status.soon{background:#fff1cf;color:#805500}.status.expired{background:#ffe2e5;color:#922432}.status.active{background:#dff5e9;color:#17643b}.notice{padding:10px;border-radius:9px;background:#e8f4ff;color:#174d8c;margin:10px 0}.auth{max-width:420px;margin:8vh auto}@media(max-width:600px){header{padding:13px}main{margin:14px auto}.panel{padding:13px}button{min-height:40px}}
+.embedded header{display:none}.embedded main{margin:12px auto;padding:0 10px}.embedded .panel{box-shadow:none}.embedded #logout{display:none!important}@media(max-width:600px){.embedded main{margin:8px auto;padding:0 6px}}
 </style></head><body>
 <header><div><strong>Bangnet Manager</strong><div class="muted" style="color:#cbd5e1">Terintegrasi dengan Admin Bangnet Store</div></div><div class="row" style="flex:0 0 auto"><a href="/admin.html" style="color:white">← Admin Store</a><button id="logout" class="secondary">Keluar</button></div></header>
 <main>
@@ -19,6 +20,7 @@
 </section></main>
 <script type="module">
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const embedded=new URLSearchParams(location.search).get('embedded')==='1';if(embedded)document.body.classList.add('embedded');
 const sb=createClient('https://wectusglyacjqtapyvpr.supabase.co','sb_publishable_0uDuEdDgIlOFCW23e_-o9g_RadhCYus');
 const ADMIN='bangunwicaksono553@gmail.com',UID='28284234-c92b-427b-aacc-68ad18a6fe1f', $=id=>document.getElementById(id);
 let user=null,products=[],catalog=[],templates=[],selected=[];
