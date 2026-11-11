@@ -1,0 +1,20 @@
+name: Manager static validation
+on:
+  push:
+    branches:
+      - feature/manager-admin-integration
+  pull_request:
+    branches:
+      - main
+jobs:
+  validate-manager:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check HTML IDs and extract module
+        run: python3 scripts/check-manager.py
+      - name: Check JavaScript syntax
+        run: node --check /tmp/manager-check.mjs
