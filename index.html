@@ -392,12 +392,36 @@ var E={"Gemini":"✨","Alight Motion":"🎞️","BStation":"📺","Canva":"🎨"
 function art(n,c,e){var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 150"><defs><linearGradient id="g" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".6"/><stop offset="1" stop-color="'+c+'"/></linearGradient></defs><rect width="300" height="150" fill="url(#g)"/><circle cx="40" cy="125" r="70" fill="#fff" opacity=".10"/><circle cx="272" cy="28" r="50" fill="#fff" opacity=".12"/><circle cx="150" cy="62" r="46" fill="#fff" opacity=".18"/><text x="150" y="80" font-size="50" text-anchor="middle">'+e+'</text><rect x="60" y="112" width="180" height="24" rx="12" fill="#fff" opacity=".92"/><text x="150" y="128" font-family="Arial,sans-serif" font-weight="700" font-size="12" fill="'+c+'" text-anchor="middle">PREMIUM · HARGA HEMAT</text></svg>';return "data:image/svg+xml,"+encodeURIComponent(s)}
 var CAT={"AKRAB Super Mini":"Paket Internet","AKRAB Super Lite V2":"Paket Internet","AKRAB Mini":"Paket Internet","AKRAB Big":"Paket Internet","AKRAB Big V2":"Paket Internet","AKRAB JUMBO V2":"Paket Internet","AKRAB JUMBO V3":"Paket Internet","AKRAB Mega Big V2":"Paket Internet","AKRAB Mega Big":"Paket Internet","AKRAB JUMBO":"Paket Internet","Paket Data XL Ultra 5G+ 150GB":"Paket Internet","Paket Data XL Ultra 5G+ 250GB":"Paket Internet","Paket Data XL Ultra 5G+ 500GB":"Paket Internet","Indosat Freedom Internet Sensasi 100 GB 28 Hari":"Paket Internet","Indosat Freedom Internet 125 GB 28 Hari":"Paket Internet","Indosat Freedom Internet Sensasi 200 GB 28 Hari":"Paket Internet","Bstation":"Streaming Video & Hiburan","Disney+ Hotstar":"Streaming Video & Hiburan","HBO MAX":"Streaming Video & Hiburan","Iqiyi":"Streaming Video & Hiburan","LOKLOK":"Streaming Video & Hiburan","Netflix":"Streaming Video & Hiburan","Prime Video":"Streaming Video & Hiburan","Vidio":"Streaming Video & Hiburan","Viu":"Streaming Video & Hiburan","Vision":"Streaming Video & Hiburan","DramaBox":"Streaming Video & Hiburan","Youtube":"Streaming Video & Hiburan","Apple Music":"Streaming Musik & Audio","Spotify Premium":"Streaming Musik & Audio","Alight Motion":"Editor Foto, Video, & Desain","Canva":"Editor Foto, Video, & Desain","Capcut 1 bulan":"Editor Foto, Video, & Desain","Meitu":"Editor Foto, Video, & Desain","Wink":"Editor Foto, Video, & Desain","Duolingo":"AI & VPN","Fizzo Novel":"AI & VPN","Scribd":"AI & VPN","Avira VPN":"AI & VPN","HMA VPN":"AI & VPN","ChatGPT":"AI & VPN","GEMINI":"AI & VPN","Zoom Meetings Pro":"Produktivitas & Dokumen"};
 var V=[],cart={};
-G.forEach(function(g,gi){g[3].forEach(function(v,vi){var h=hs(g[0]+v[0]);V.push({id:gi+"-"+vi,g:gi,n:v[0],p:v[1],st:5+h%56,so:20+(h>>3)%381})})});
+G.forEach(function(g,gi){g[3].forEach(function(v,vi){V.push({id:gi+"-"+vi,g:gi,n:v[0],p:v[1],st:0,so:0,dbId:null})})});
+var stockRows=[],stockReady=false;
+var STOCK_URL="https://wectusglyacjqtapyvpr.supabase.co";
+var STOCK_KEY="sb_publishable_0uDuEdDgIlOFCW23e_-o9g_RadhCYus";
+function normStockName(value){return String(value||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim().replace(/\\s+/g," ")}
+function findStockRow(item){
+ var group=G[item.g]||[],groupName=normStockName(group[0]),variantName=normStockName(item.n),price=Number(item.p);
+ var candidates=stockRows.filter(function(row){return Number(row.price)===price&&!row.archived;});
+ var exact=candidates.find(function(row){var n=normStockName(row.name);return n===groupName||n===variantName||n===normStockName(group[0]+" "+item.n);});
+ if(exact)return exact;
+ return candidates.find(function(row){var n=normStockName(row.name);return n.indexOf(groupName)===0||n.indexOf(variantName)===0;})||null;
+}
+function stockBadge(item){return !stockReady?"Memuat stok…":item.st>0?"Stok tersedia: "+item.st:"Stok habis"}
+async function loadStoreStock(){
+ try{
+  var response=await fetch(STOCK_URL+"/rest/v1/products?select=id,name,price,stock,archived&archived=eq.false",{headers:{"apikey":STOCK_KEY,"Authorization":"Bearer "+STOCK_KEY},cache:"no-store"});
+  if(!response.ok)throw new Error("HTTP "+response.status);
+  stockRows=await response.json();
+  V.forEach(function(item){var row=findStockRow(item);item.dbId=row?row.id:null;item.st=row?Math.max(0,Number(row.stock)||0):0;});
+  stockReady=true;
+  document.querySelectorAll(".card").forEach(function(card){if(card.dataset.groupIndex!==undefined&&typeof card.refreshStock==="function")card.refreshStock();});
+ }catch(error){stockReady=false;console.error("Gagal memuat stok produk:",error);document.querySelectorAll(".card").forEach(function(card){if(card.dataset.groupIndex!==undefined&&typeof card.refreshStock==="function")card.refreshStock();});}
+}
+loadStoreStock();
+setInterval(loadStoreStock,15000);
 function byId(i){return V.find(function(y){return y.id==i})}
 var grid=document.getElementById("grid"),cards=[];
 G.forEach(function(g,gi){
 var vs=V.filter(function(x){return x.g==gi}),cur=vs[0],qv=1;
-var e=document.createElement("div");e.className="card";
+var e=document.createElement("div");e.className="card";e.dataset.groupIndex=String(gi);
 e.innerHTML='<div class="sl"><img class="a" alt=""><img class="b" alt=""></div><h3></h3><p></p><select></select><div class="price"></div><div class="social-proof"><span class="stars"></span><span class="sold"></span></div><div class="meta"></div><div class="qs"><button class="qm" aria-label="Kurangi">−</button><span class="qn">1</span><button class="qp" aria-label="Tambah">+</button></div><button class="add">+ Keranjang</button>';
 e.querySelector(".a").src=img(g[0],g[2]);e.querySelector(".b").src=art(g[0],g[2],E[g[0]]||"🛍️");
 e.querySelector("h3").textContent=g[0];e.dataset.productId=g[0];
@@ -416,11 +440,11 @@ var salesCount=Math.floor(Math.random()*34);e.dataset.salesCount=String(salesCou
 var sel=e.querySelector("select"),qn=e.querySelector(".qn");
 if(vs.length<2)sel.style.display="none";
 vs.forEach(function(x,i){var o=document.createElement("option");o.value=i;o.textContent=x.n+" — "+rp(x.p);sel.appendChild(o)});
-function upd(){cur=vs[sel.value];qv=1;qn.textContent=1;e.querySelector(".price").textContent=rp(cur.p);e.querySelector(".meta").textContent=""}
-sel.onchange=upd;upd();
+function upd(){cur=vs[sel.value];qv=1;qn.textContent=1;e.querySelector(".price").textContent=rp(cur.p);e.querySelector(".meta").textContent=stockBadge(cur);var addBtn=e.querySelector(".add");var unavailable=!stockReady||cur.st<=0;addBtn.disabled=unavailable;addBtn.textContent=!stockReady?"Memuat stok…":cur.st<=0?"Stok Habis":"+ Keranjang";addBtn.style.opacity=unavailable?".55":"1";addBtn.style.cursor=unavailable?"not-allowed":"pointer";e.querySelector(".qp").disabled=unavailable;}
+sel.onchange=upd;e.refreshStock=upd;upd();
 e.querySelector(".qm").onclick=function(){if(qv>1){qv--;qn.textContent=qv}};
-e.querySelector(".qp").onclick=function(){if(qv<cur.st){qv++;qn.textContent=qv}};
-e.querySelector(".add").onclick=function(){cart[cur.id]=Math.min((cart[cur.id]||0)+qv,cur.st);qv=1;qn.textContent=1;draw();var b=this;b.textContent="✓ Ditambahkan";setTimeout(function(){b.textContent="+ Keranjang"},900)};
+e.querySelector(".qp").onclick=function(){if(stockReady&&qv<cur.st){qv++;qn.textContent=qv}};
+e.querySelector(".add").onclick=function(){if(!stockReady||cur.st<=0){upd();return;}cart[cur.id]=Math.min((cart[cur.id]||0)+qv,cur.st);qv=1;qn.textContent=1;draw();var b=this;b.textContent="✓ Ditambahkan";setTimeout(function(){upd()},900)};
 grid.appendChild(e);cards.push({el:e,c:g[4]||CAT[g[0]]||"Lainnya",t:(g[0]+" "+g[1]+" "+vs.map(function(x){return x.n}).join(" ")).toLowerCase()})});
 // Urutkan produk pada tampilan "Semua" mengikuti urutan kategori yang ditampilkan.
 var categoryOrder=["Streaming Video & Hiburan","Editor Foto, Video, & Desain","AI & VPN","Produktivitas & Dokumen","Paket Internet","XL","Axis","Telkomsel","Indosat","Tri","Smartfren","Streaming Musik & Audio"];
