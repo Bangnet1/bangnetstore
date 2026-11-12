@@ -16,24 +16,8 @@ create policy "Buyers can read own sales orders"
   to authenticated
   using ((select auth.uid()) = customer_user_id);
 
+-- Do not allow direct client INSERT: clients must use the validated RPC below.
 drop policy if exists "Buyers can submit own website orders" on public.sales_orders;
-create policy "Buyers can submit own website orders"
-  on public.sales_orders
-  for insert
-  to authenticated
-  with check (
-    (select auth.uid()) = customer_user_id
-    and customer_email = (select auth.jwt() ->> 'email')
-    and status = 'menunggu_pembayaran'
-    and source = 'checkout_website'
-    and jsonb_typeof(order_items) = 'array'
-    and jsonb_array_length(order_items) between 1 and 100
-    and total_amount >= 0
-    and customer_contact is not null
-    and length(trim(customer_contact)) between 8 and 20
-    and payment_proof_path is not null
-    and payment_proof_path like ('orders/' || (select auth.uid())::text || '/%')
-  );
 
 -- Buyers upload proof files only inside their own UID folder.
 -- Keep existing admin read policy and legacy anon policy untouched.
@@ -62,7 +46,8 @@ create policy "Buyers remove own orphaned payment proofs"
 
 
 -- Server-side checkout: prices and totals are always taken from public.products.
--- SECURITY INVOKER keeps the caller's RLS permissions in force.
+-- SECURITY DEFINER is required because direct client INSERT is intentionally disabled.
+-- The function performs explicit identity, input, product, stock and total validation.
 create or replace function public.create_buyer_order(
   p_order_items jsonb,
   p_customer_contact text,
@@ -70,7 +55,7 @@ create or replace function public.create_buyer_order(
 )
 returns bigint
 language plpgsql
-security invoker
+security definer
 set search_path = public, pg_temp
 as $$
 declare
