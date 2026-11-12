@@ -116,7 +116,8 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
       const item = lookup(id);
       const quantity = Number(cart[id] || 0);
       if (!item || quantity <= 0) return null;
-      return { product_name: String(item.n), quantity, unit_price: Number(item.p), subtotal: quantity * Number(item.p) };
+      if (!item.dbId) throw new Error('Produk "' + String(item.n) + '" belum memiliki data stok yang cocok di database. Silakan hubungi admin.');
+      return { product_id: Number(item.dbId), quantity, product_name: String(item.n) };
     }).filter(Boolean);
     if (!items.length) throw new Error('Keranjang masih kosong.');
     if (items.some(item => !Number.isFinite(item.unit_price) || item.unit_price < 0 || !Number.isSafeInteger(item.quantity) || item.quantity < 1)) {
@@ -166,19 +167,13 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
           path = 'orders/' + user.id + '/' + crypto.randomUUID() + '.' + extension;
           const upload = await supabase.storage.from('payment-proofs').upload(path, file, { contentType: file.type, cacheControl: '3600', upsert: false });
           if (upload.error) throw upload.error;
-          const order = await supabase.from('sales_orders').insert({
-            customer_user_id: user.id,
-            customer_email: user.email,
-            customer_name: user.email,
-            customer_contact: phone,
-            order_items: latest.items,
-            total_amount: latest.total,
-            status: 'menunggu_pembayaran',
-            source: 'checkout_website',
-            payment_proof_path: path
-          }).select('id').single();
+          const order = await supabase.rpc('create_buyer_order', {
+            p_order_items: latest.items,
+            p_customer_contact: phone,
+            p_payment_proof_path: path
+          });
           if (order.error) throw order.error;
-          show('<h3>Bukti pembayaran terkirim</h3><p class="buyerMuted">Pesanan #' + esc(order.data.id) + ' sudah tercatat. Status tetap menunggu verifikasi sampai admin memeriksa pembayaran.</p><button class="buyerPrimary" id="buyerViewOrders" type="button">Lihat riwayat pesanan</button>');
+          show('<h3>Bukti pembayaran terkirim</h3><p class="buyerMuted">Pesanan #' + esc(order.data) + ' sudah tercatat. Total dan harga telah diperiksa oleh database. Status tetap menunggu verifikasi sampai admin memeriksa pembayaran.</p><button class="buyerPrimary" id="buyerViewOrders" type="button">Lihat riwayat pesanan</button>');
           content.querySelector('#buyerViewOrders').onclick = renderAccount;
           if (window.cart) { Object.keys(window.cart).forEach(id => delete window.cart[id]); if (typeof window.draw === 'function') window.draw(); }
         } catch (error) {
