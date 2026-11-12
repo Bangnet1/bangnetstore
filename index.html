@@ -398,7 +398,7 @@ var STOCK_URL="https://wectusglyacjqtapyvpr.supabase.co";
 var STOCK_KEY="sb_publishable_0uDuEdDgIlOFCW23e_-o9g_RadhCYus";
 function normStockName(value){return String(value||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim().replace(/\\s+/g," ")}
 function findStockRow(item){
- var group=G[item.g]||[],groupName=normStockName(group[0]),variantName=normStockName(item.n),price=Number(item.p);
+ var group=G[item.g]||[],groupName=normStockName(group[0]),variantName=normStockName(item.n),price=Number(item.catalogPrice??item.p);
  var candidates=stockRows.filter(function(row){return Number(row.price)===price&&!row.archived;});
  var exact=candidates.find(function(row){var n=normStockName(row.name);return n===groupName||n===variantName||n===normStockName(group[0]+" "+item.n);});
  if(exact)return exact;
@@ -410,9 +410,9 @@ async function loadStoreStock(){
   var response=await fetch(STOCK_URL+"/rest/v1/products?select=id,name,price,stock,archived&archived=eq.false",{headers:{"apikey":STOCK_KEY,"Authorization":"Bearer "+STOCK_KEY},cache:"no-store"});
   if(!response.ok)throw new Error("HTTP "+response.status);
   stockRows=await response.json();
-  V.forEach(function(item){var row=findStockRow(item);item.dbId=row?row.id:null;item.st=row?Math.max(0,Number(row.stock)||0):0;});
+  V.forEach(function(item){if(item.catalogPrice===undefined)item.catalogPrice=Number(item.p);var row=findStockRow(item);item.dbId=row?row.id:null;item.st=row?Math.max(0,Number(row.stock)||0):0;if(row)item.p=Number(row.price);});
   stockReady=true;
-  document.querySelectorAll(".card").forEach(function(card){if(card.dataset.groupIndex!==undefined&&typeof card.refreshStock==="function")card.refreshStock();});
+  document.querySelectorAll(".card").forEach(function(card){if(card.dataset.groupIndex!==undefined&&typeof card.refreshStock==="function")card.refreshStock();});if(Object.keys(cart).length&&typeof draw==="function")draw();
  }catch(error){stockReady=false;stockError=true;console.error("Gagal memuat stok produk:",error);document.querySelectorAll(".card").forEach(function(card){if(card.dataset.groupIndex!==undefined&&typeof card.refreshStock==="function")card.refreshStock();});}
 }
 loadStoreStock();
@@ -649,5 +649,6 @@ draw();
 })();
 </script>
 
+<script type="module" src="./buyer-checkout.js"></script>
 </body>
 </html>
