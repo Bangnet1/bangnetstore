@@ -112,20 +112,37 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
     const cart = window.cart;
     const lookup = window.byId;
     if (!cart || typeof lookup !== 'function') throw new Error('Keranjang belum siap. Muat ulang halaman lalu coba kembali.');
-    const items = Object.keys(cart).map(id => {
+    const grouped = new Map();
+    Object.keys(cart).forEach(id => {
       const item = lookup(id);
       const quantity = Number(cart[id] || 0);
-      if (!item || quantity <= 0) return null;
-      if (!item.dbId) throw new Error('Produk "' + String(item.n) + '" belum memiliki data stok yang cocok di database. Silakan hubungi admin.');
-      return { product_id: Number(item.dbId), quantity, product_name: String(item.n) };
-    }).filter(Boolean);
-    if (!items.length) throw new Error('Keranjang masih kosong.');
-    if (items.some(item => !Number.isFinite(item.unit_price) || item.unit_price < 0 || !Number.isSafeInteger(item.quantity) || item.quantity < 1)) {
-      throw new Error('Rincian harga atau jumlah produk tidak valid.');
-    }
-    const total = items.reduce((sum, item) => sum + item.subtotal, 0);
+      if (!item || quantity <= 0) return;
+      const productId = Number(item.dbId);
+      const displayPrice = Number(item.p);
+      if (!Number.isSafeInteger(productId) || productId < 1) {
+        throw new Error('Produk "' + String(item.n) + '" belum memiliki data stok yang cocok di database. Silakan hubungi admin.');
+      }
+      if (!Number.isSafeInteger(quantity) || quantity < 1 || !Number.isSafeInteger(displayPrice) || displayPrice < 0) {
+        throw new Error('Rincian harga atau jumlah produk tidak valid.');
+      }
+      const existing = grouped.get(productId);
+      if (existing) {
+        if (existing.displayPrice !== displayPrice) throw new Error('Harga produk tidak konsisten. Muat ulang halaman lalu coba kembali.');
+        existing.quantity += quantity;
+        if (!Number.isSafeInteger(existing.quantity) || existing.quantity > 100) throw new Error('Jumlah produk melebihi batas pesanan.');
+      } else {
+        grouped.set(productId, { product_id: productId, quantity, product_name: String(item.n), displayPrice });
+      }
+    });
+    const groupedItems = Array.from(grouped.values());
+    if (!groupedItems.length) throw new Error('Keranjang masih kosong.');
+    if (groupedItems.some(item => item.quantity > 100)) throw new Error('Jumlah produk melebihi batas pesanan.');
+    const total = groupedItems.reduce((sum, item) => sum + item.displayPrice * item.quantity, 0);
     if (!Number.isSafeInteger(total)) throw new Error('Total pesanan tidak valid.');
-    return { items, total };
+    return {
+      items: groupedItems.map(({ product_id, quantity, product_name }) => ({ product_id, quantity, product_name })),
+      total
+    };
   }
 
   async function openPaymentForm() {
