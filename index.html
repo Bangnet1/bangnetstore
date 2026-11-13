@@ -400,9 +400,12 @@ function normStockName(value){return String(value||"").toLowerCase().replace(/[^
 function findStockRow(item){
  var group=G[item.g]||[],groupName=normStockName(group[0]),variantName=normStockName(item.n),price=Number(item.catalogPrice??item.p);
  var candidates=stockRows.filter(function(row){return Number(row.price)===price&&!row.archived;});
- var exact=candidates.find(function(row){var n=normStockName(row.name);return n===groupName||n===variantName||n===normStockName(group[0]+" "+item.n);});
- if(exact)return exact;
- return candidates.find(function(row){var n=normStockName(row.name);return n.indexOf(groupName)===0||n.indexOf(variantName)===0;})||null;
+ var exactMatches=candidates.filter(function(row){var n=normStockName(row.name);return n===groupName||n===variantName||n===normStockName(group[0]+" "+item.n);});
+ if(exactMatches.length===1)return exactMatches[0];
+ if(exactMatches.length>1)return null;
+ var prefixMatches=candidates.filter(function(row){var n=normStockName(row.name);return (groupName&&n.indexOf(groupName)===0)||(variantName&&n.indexOf(variantName)===0);});
+ // Jangan memilih baris database secara acak jika beberapa produk memiliki harga/nama mirip.
+ return prefixMatches.length===1?prefixMatches[0]:null;
 }
 function stockBadge(item){return !stockReady?(stockError?"Stok tidak dapat dimuat":"Memuat stok…"):item.st>0?"Stok tersedia: "+item.st:"Stok habis"}
 async function loadStoreStock(){
