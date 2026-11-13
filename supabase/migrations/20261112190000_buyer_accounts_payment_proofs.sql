@@ -116,7 +116,8 @@ begin
     if v_stock < v_quantity then
       raise exception 'Stok produk "%" tidak mencukupi.', v_product_name;
     end if;
-    if v_price < 0 or v_price > 90000000000000 then
+    if v_price is null or v_stock is null
+       or v_price < 0 or v_price > 90000000000000 then
       raise exception 'Harga produk tidak valid atau melebihi batas transaksi.';
     end if;
 
