@@ -75,7 +75,8 @@ begin
   if v_user_id is null or v_email is null then
     raise exception 'Silakan masuk menggunakan akun pembeli terlebih dahulu.';
   end if;
-  if jsonb_typeof(p_order_items) <> 'array'
+  if p_order_items is null
+     or jsonb_typeof(p_order_items) is distinct from 'array'
      or jsonb_array_length(p_order_items) < 1
      or jsonb_array_length(p_order_items) > 100 then
     raise exception 'Rincian produk tidak valid.';
@@ -115,15 +116,16 @@ begin
     if v_stock < v_quantity then
       raise exception 'Stok produk "%" tidak mencukupi.', v_product_name;
     end if;
-    if v_price < 0 then
-      raise exception 'Harga produk tidak valid.';
+    if v_price < 0 or v_price > 90000000000000 then
+      raise exception 'Harga produk tidak valid atau melebihi batas transaksi.';
     end if;
 
+    -- Bound the unit price before bigint multiplication to prevent overflow.
     v_subtotal := v_price * v_quantity;
-    v_total := v_total + v_subtotal;
-    if v_total > 9000000000000000 then
+    if v_total > 9000000000000000 - v_subtotal then
       raise exception 'Total pesanan terlalu besar.';
     end if;
+    v_total := v_total + v_subtotal;
     v_items := v_items || jsonb_build_array(jsonb_build_object(
       'product_id', v_product_id,
       'product_name', v_product_name,
